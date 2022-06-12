@@ -139,7 +139,12 @@ renderListExample = renderList justADot (9, 11) (9, 11)
 --      ["000000","000000","000000"]]
 
 dotAndLine :: Picture
-dotAndLine = todo
+dotAndLine = Picture f
+  where
+    f (Coord x y)
+      | x == 3 && y == 4 = white
+      | y == 8 = pink
+      | otherwise = black
 
 ------------------------------------------------------------------------------
 
@@ -173,10 +178,12 @@ dotAndLine = todo
 --          ["7f0000","7f0000","7f0000"]]
 
 blendColor :: Color -> Color -> Color
-blendColor = todo
+blendColor (Color r1 g1 b1) (Color r2 g2 b2) = Color ((r1 + r2) `div` 2) ((g1 + g2) `div` 2) ((b1 + b2) `div` 2)
 
 combine :: (Color -> Color -> Color) -> Picture -> Picture -> Picture
-combine = todo
+combine f (Picture p1) (Picture p2) = Picture g
+  where
+    g coord = f (p1 coord) (p2 coord)
 
 ------------------------------------------------------------------------------
 
@@ -241,7 +248,9 @@ exampleCircle = fill red (circle 80 100 200)
 --        ["000000","000000","000000","000000","000000","000000"]]
 
 rectangle :: Int -> Int -> Int -> Int -> Shape
-rectangle x0 y0 w h = todo
+rectangle x0 y0 w h = Shape f
+  where
+    f (Coord x y) = x >= x0 && y >= y0 && x <= x0 + w - 1 && y <= y0 + h - 1
 
 ------------------------------------------------------------------------------
 
@@ -258,10 +267,14 @@ rectangle x0 y0 w h = todo
 -- shape.
 
 union :: Shape -> Shape -> Shape
-union = todo
+union (Shape s1) (Shape s2) = Shape s
+  where
+    s coord = s1 coord || s2 coord
 
 cut :: Shape -> Shape -> Shape
-cut = todo
+cut (Shape s1) (Shape s2) = Shape s
+  where
+    s coord = s1 coord && not (s2 coord)
 
 ------------------------------------------------------------------------------
 
@@ -291,7 +304,12 @@ exampleSnowman = fill white snowman
 --        ["000000","000000","000000"]]
 
 paintSolid :: Color -> Shape -> Picture -> Picture
-paintSolid color shape base = todo
+paintSolid color (Shape shape) (Picture f) = Picture g
+  where
+    g :: Coord -> Color
+    g coord
+      | shape coord = color
+      | otherwise = f coord
 
 ------------------------------------------------------------------------------
 
@@ -342,7 +360,11 @@ stripes a b = Picture f
 --       ["000000","000000","000000","000000","000000"]]
 
 paint :: Picture -> Shape -> Picture -> Picture
-paint pat shape base = todo
+paint (Picture pattern) (Shape shape) (Picture base) = Picture f
+  where
+    f (Coord x y)
+      | shape (Coord x y) = pattern (Coord x y)
+      | otherwise = base (Coord x y)
 
 ------------------------------------------------------------------------------
 
@@ -408,19 +430,29 @@ xy = Picture f
 data Fill = Fill Color
 
 instance Transform Fill where
-  apply = todo
+  apply (Fill color) (Picture f) = Picture g
+    where
+      g (Coord x y) = color
 
 data Zoom = Zoom Int
   deriving (Show)
 
 instance Transform Zoom where
-  apply = todo
+  apply (Zoom z) (Picture f) = zoom z (Picture f)
 
 data Flip = FlipX | FlipY | FlipXY
   deriving (Show)
 
 instance Transform Flip where
-  apply = todo
+  apply FlipX (Picture f) = Picture g
+    where
+      g (Coord x y) = f (Coord (- x) y)
+  apply FlipY (Picture f) = Picture g
+    where
+      g (Coord x y) = f (Coord x (- y))
+  apply FlipXY (Picture f) = Picture g
+    where
+      g (Coord x y) = f (Coord y x)
 
 ------------------------------------------------------------------------------
 
@@ -436,8 +468,8 @@ instance Transform Flip where
 data Chain a b = Chain a b
   deriving (Show)
 
-instance Transform (Chain a b) where
-  apply = todo
+instance (Transform a, Transform b) => Transform (Chain a b) where
+  apply (Chain a b) = apply a . apply b
 
 ------------------------------------------------------------------------------
 
@@ -476,7 +508,18 @@ data Blur = Blur
   deriving (Show)
 
 instance Transform Blur where
-  apply = todo
+  apply Blur (Picture f) = Picture g
+    where
+      g (Coord x y) =
+        let c1 = f (Coord x y)
+            c2 = f (Coord (x + 1) y)
+            c3 = f (Coord x (y + 1))
+            c4 = f (Coord (x - 1) y)
+            c5 = f (Coord x (y - 1))
+            colors = [c1, c2, c3, c4, c5]
+            accumulate (Color r0 g0 b0) (r, g, b) = (r + r0, g + g0, b + b0)
+            (r, g, b) = foldr accumulate (0, 0, 0) colors
+         in Color (r `div` 5) (g `div` 5) (b `div` 5)
 
 ------------------------------------------------------------------------------
 
@@ -495,7 +538,8 @@ data BlurMany = BlurMany Int
   deriving (Show)
 
 instance Transform BlurMany where
-  apply = todo
+  apply (BlurMany 1) = apply Blur
+  apply (BlurMany n) = apply Blur . apply (BlurMany (n - 1))
 
 ------------------------------------------------------------------------------
 
