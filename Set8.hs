@@ -538,8 +538,8 @@ data BlurMany = BlurMany Int
   deriving (Show)
 
 instance Transform BlurMany where
-  apply (BlurMany 1) = apply Blur
-  apply (BlurMany n) = apply Blur . apply (BlurMany (n - 1))
+  apply (BlurMany 0) (Picture f) = Picture f
+  apply (BlurMany n) (Picture f) = apply Blur . apply (BlurMany (n - 1)) $ Picture f
 
 ------------------------------------------------------------------------------
 
