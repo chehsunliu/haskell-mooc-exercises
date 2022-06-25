@@ -127,7 +127,14 @@ lengthAtLeast _ [] = False
 --   take 4 (chunks 3 [0..]) ==> [[0,1,2],[1,2,3],[2,3,4],[3,4,5]]
 
 chunks :: Int -> [a] -> [[a]]
-chunks = todo
+chunks _ [] = []
+chunks n (y : ys) =
+  let f 0 _ = []
+      f m (x : xs) = x : f (m - 1) xs
+      f _ [] = []
+
+      chunk = f n (y : ys)
+   in if length chunk < n then chunks n ys else chunk : chunks n ys
 
 ------------------------------------------------------------------------------
 -- Ex 8: Define a newtype called IgnoreCase, that wraps a value of
