@@ -423,7 +423,7 @@ step size coords = case fixFirst size coords of
 
 finish :: Size -> Stack -> Stack
 finish size (_ : coords) | size == length coords = coords
-finish size coords = finish size (step size coords) 
+finish size coords = finish size (step size coords)
 
 solve :: Size -> Stack
 solve n = finish n [(1, 1)]
