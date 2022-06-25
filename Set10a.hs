@@ -74,7 +74,10 @@ deal _ _ = []
 --   take 10 (averages [1..]) ==> [1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,5.5]
 
 averages :: [Double] -> [Double]
-averages = todo
+averages = f 0 0
+  where
+    f n s (x : xs) = ((s + x) / (n + 1)) : f (n + 1) (s + x) xs
+    f _ _ [] = []
 
 ------------------------------------------------------------------------------
 -- Ex 5: Given two lists, xs and ys, and an element z, generate an
