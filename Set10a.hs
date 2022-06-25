@@ -150,7 +150,13 @@ chunks n (y : ys) =
 --   ignorecase "abC" == ignorecase "ABc"  ==>  True
 --   ignorecase "acC" == ignorecase "ABc"  ==>  False
 
-ignorecase = todo
+newtype IgnoreCase = IgnoreCase String
+
+instance Eq IgnoreCase where
+  (IgnoreCase s1) == (IgnoreCase s2) = map toUpper s1 == map toUpper s2
+
+ignorecase :: String -> IgnoreCase
+ignorecase = IgnoreCase
 
 ------------------------------------------------------------------------------
 -- Ex 9: Here's the Room type and some helper functions from the
