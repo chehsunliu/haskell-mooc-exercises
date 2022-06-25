@@ -57,7 +57,8 @@ interleave [] ys = ys
 -- Hint: remember the functions cycle and zip?
 
 deal :: [String] -> [String] -> [(String, String)]
-deal = todo
+deal (player : players) (card : cards) = (card, player) : deal (players ++ [player]) cards
+deal _ _ = []
 
 ------------------------------------------------------------------------------
 -- Ex 4: Compute a running average. Go through a list of Doubles and
