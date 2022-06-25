@@ -107,7 +107,9 @@ alternate xs ys z = xs ++ [z] ++ alternate ys xs z
 --   lengthAtLeast 10 [0..]  ==> True
 
 lengthAtLeast :: Int -> [a] -> Bool
-lengthAtLeast = todo
+lengthAtLeast 0 _ = True
+lengthAtLeast n (_ : xs) = lengthAtLeast (n - 1) xs
+lengthAtLeast _ [] = False
 
 ------------------------------------------------------------------------------
 -- Ex 7: The function chunks should take in a list, and a number n,
