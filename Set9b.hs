@@ -1,8 +1,7 @@
 module Set9b where
 
-import Mooc.Todo
-
 import Data.List
+import Mooc.Todo
 
 --------------------------------------------------------------------------------
 -- Ex 1: In this exercise set, we'll solve the N Queens problem step by step.
@@ -42,15 +41,17 @@ import Data.List
 -- the roles of different function arguments clearer without adding syntactical
 -- overhead:
 
-type Row   = Int
-type Col   = Int
+type Row = Int
+
+type Col = Int
+
 type Coord = (Row, Col)
 
 nextRow :: Coord -> Coord
-nextRow (i,j) = todo
+nextRow (i, j) = (i + 1, 1)
 
 nextCol :: Coord -> Coord
-nextCol (i,j) = todo
+nextCol (i, j) = (i, j + 1)
 
 --------------------------------------------------------------------------------
 -- Ex 2: Implement the function prettyPrint that, given the size of
@@ -103,7 +104,20 @@ nextCol (i,j) = todo
 type Size = Int
 
 prettyPrint :: Size -> [Coord] -> String
-prettyPrint = todo
+prettyPrint size coords = f 0 (sort coords)
+  where
+    symbol :: Char -> Size -> [Char]
+    symbol c n
+      | n `mod` size == size - 1 = c : "\n"
+      | otherwise = [c]
+
+    f :: Size -> [Coord] -> String
+    f n []
+      | n < size * size = symbol '.' n ++ f (n + 1) []
+      | otherwise = []
+    f n ((r, c) : cs)
+      | n < (r - 1) * size + c - 1 = symbol '.' n ++ f (n + 1) ((r, c) : cs)
+      | otherwise = symbol 'Q' n ++ f (n + 1) cs
 
 --------------------------------------------------------------------------------
 -- Ex 3: The task in this exercise is to define the relations sameRow, sameCol,
@@ -127,16 +141,16 @@ prettyPrint = todo
 --   sameAntidiag (500,5) (5,500) ==> True
 
 sameRow :: Coord -> Coord -> Bool
-sameRow (i,j) (k,l) = todo
+sameRow (i, j) (k, l) = i == k
 
 sameCol :: Coord -> Coord -> Bool
-sameCol (i,j) (k,l) = todo
+sameCol (i, j) (k, l) = j == l
 
 sameDiag :: Coord -> Coord -> Bool
-sameDiag (i,j) (k,l) = todo
+sameDiag (i, j) (k, l) = i - j == k - l
 
 sameAntidiag :: Coord -> Coord -> Bool
-sameAntidiag (i,j) (k,l) = todo
+sameAntidiag (i, j) (k, l) = i + j == k + l
 
 --------------------------------------------------------------------------------
 -- Ex 4: In chess, a queen may capture another piece in the same row, column,
@@ -188,10 +202,17 @@ sameAntidiag (i,j) (k,l) = todo
 -- https://en.wikipedia.org/wiki/Stack_(abstract_data_type)
 
 type Candidate = Coord
-type Stack     = [Coord]
+
+type Stack = [Coord]
 
 danger :: Candidate -> Stack -> Bool
-danger = todo
+danger candidate (coord : coords) =
+  sameRow candidate coord
+    || sameCol candidate coord
+    || sameDiag candidate coord
+    || sameAntidiag candidate coord
+    || danger candidate coords
+danger _ [] = False
 
 --------------------------------------------------------------------------------
 -- Ex 5: In this exercise, the task is to write a modified version of
@@ -226,7 +247,15 @@ danger = todo
 -- solution to this version. Any working solution is okay in this exercise.)
 
 prettyPrint2 :: Size -> Stack -> String
-prettyPrint2 = todo
+prettyPrint2 size queens = f 0 (prettyPrint size queens)
+  where
+    f _ [] = []
+    f x ('\n' : s) = '\n' : f x s
+    f x ('Q' : s) = 'Q' : f (x + 1) s
+    f x (c : s) =
+      let xCoord = (x `div` size + 1, x `mod` size + 1)
+          symbol = if danger xCoord queens then '#' else c
+       in symbol : f (x + 1) s
 
 --------------------------------------------------------------------------------
 -- Ex 6: Now that we can check if a piece can be safely placed into a square in
@@ -271,19 +300,28 @@ prettyPrint2 = todo
 --     Q#######
 
 fixFirst :: Size -> Stack -> Maybe Stack
-fixFirst n s = todo
+fixFirst size [(r, c)]
+  | c > size = Nothing
+  | otherwise = Just [(r, c)]
+fixFirst size ((r, c) : queens)
+  | c > size = Nothing
+  | otherwise =
+    if danger (r, c) queens
+      then fixFirst size ((r, c + 1) : queens)
+      else Just ((r, c) : queens)
+fixFirst _ [] = Nothing
 
 --------------------------------------------------------------------------------
 -- Ex 7: We need two helper functions for stack management.
 --
--- * continue moves on to a new row. It pushes a new candidate to the
---   top of the stack (front of the list). The new candidate should be
---   at the beginning of the next row with respect to the queen
---   previously on top of the stack.
+-- continue moves on to a new row. It pushes a new candidate to the
+-- top of the stack (front of the list). The new candidate should be
+-- at the beginning of the next row with respect to the queen
+-- previously on top of the stack.
 --
--- * backtrack moves back to the previous row. It removes the top
---   element of the stack, and adjusts the new top element so that it
---   is in the next column.
+-- backtrack moves back to the previous row. It removes the top
+-- element of the stack, and adjusts the new top element so that it
+-- is in the next column.
 --
 -- Examples:
 --   continue [(1,1)] ==> [(2,1),(1,1)]
@@ -293,10 +331,12 @@ fixFirst n s = todo
 -- Hint: Remember nextRow and nextCol? Use them!
 
 continue :: Stack -> Stack
-continue s = todo
+continue ((r, c) : coords) = (r + 1, 1) : (r, c) : coords
+continue coords = coords
 
 backtrack :: Stack -> Stack
-backtrack s = todo
+backtrack (_ : (r1, c1) : coords) = (r1, c1 + 1) : coords
+backtrack coords = coords
 
 --------------------------------------------------------------------------------
 -- Ex 8: Let's take a step. Our algorithm solves the problem (in a
@@ -365,7 +405,9 @@ backtrack s = todo
 --     step 8 [(6,1),(5,4),(4,2),(3,5),(2,3),(1,1)] ==> [(5,5),(4,2),(3,5),(2,3),(1,1)]
 
 step :: Size -> Stack -> Stack
-step = todo
+step size coords = case fixFirst size coords of
+  Just result -> continue result
+  Nothing -> backtrack coords
 
 --------------------------------------------------------------------------------
 -- Ex 9: Let's solve our puzzle! The function finish takes a partial
@@ -380,7 +422,8 @@ step = todo
 -- solve the n queens problem.
 
 finish :: Size -> Stack -> Stack
-finish = todo
+finish size (_ : coords) | size == length coords = coords
+finish size coords = finish size (step size coords) 
 
 solve :: Size -> Stack
-solve n = finish n [(1,1)]
+solve n = finish n [(1, 1)]
