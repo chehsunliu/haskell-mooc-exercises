@@ -60,7 +60,17 @@ greet2 = do
 --   ["alice","bob","carl"]
 
 readWords :: Int -> IO [String]
-readWords n = todo
+readWords n =
+  let f :: Int -> IO [String]
+      f x
+        | x <= 0 = return []
+        | otherwise = do
+          s <- getLine
+          array <- f (x - 1)
+          return (s : array)
+   in do
+        raws <- f n
+        return (sort raws)
 
 ------------------------------------------------------------------------------
 -- Ex 5: define the IO operation readUntil f, which reads lines from
