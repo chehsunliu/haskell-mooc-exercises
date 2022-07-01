@@ -118,7 +118,17 @@ countdownPrint n
 --   5. produces 9
 
 isums :: Int -> IO Int
-isums n = todo
+isums n = f n 0
+  where
+    f :: Int -> Int -> IO Int
+    f nn ans
+      | nn == 0 = do
+        return ans
+      | otherwise = do
+        s <- getLine
+        let i = (read s :: Int) + ans
+        print i
+        f (nn - 1) i
 
 ------------------------------------------------------------------------------
 -- Ex 8: when is a useful function, but its first argument has type
