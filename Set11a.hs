@@ -184,5 +184,7 @@ while cond op = do
 
 debug :: String -> IO a -> IO a
 debug s op = do
-  print s
-  op
+  putStrLn s
+  result <- op
+  putStrLn s
+  return result
