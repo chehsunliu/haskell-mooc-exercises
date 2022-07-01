@@ -95,12 +95,6 @@ readUntil f = do
       remains <- readUntil f
       return (s : remains)
 
---  if f s == True then
---    return []
---  else
---    remains <- readUntil f
---    return (s : remains)
-
 ------------------------------------------------------------------------------
 -- Ex 6: given n, print the numbers from n to 0, one per line
 
