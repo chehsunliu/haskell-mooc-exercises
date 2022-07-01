@@ -18,7 +18,11 @@ import System.IO
 --   "xfoobarquux"
 
 appendAll :: IORef String -> [String] -> IO ()
-appendAll = todo
+appendAll ref (s : ss) = do
+  content <- readIORef ref
+  writeIORef ref (content ++ s)
+  appendAll ref ss
+appendAll _ _ = return ()
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given two IORefs, swap the values stored in them.
